@@ -21,12 +21,6 @@ mkdir -p pkg/dist
 mkdir -p pkg/build
 mkdir -p pkg/rootfs/bin
 
-# Generate the tag.
-if [ -z $NOTAG ]; then
-  git commit --allow-empty -a --gpg-sign=348FFC4C -m "Release v$VERSION"
-  git tag -a -m "Version $VERSION" -s -u 348FFC4C "v${VERSION}" master
-fi
-
 # Create the Debian build box. We don't use this to package anything
 # directly, but it's used as a scratch build environment.
 docker build -t hashicorp/builder-debian images/builder-debian
@@ -60,11 +54,8 @@ cp pkg/build/gosu/gosu-amd64 pkg/rootfs/bin/gosu
 
 # Prep the release.
 pushd pkg/rootfs
-zip -r ../dist/docker-base_${VERSION}_linux_amd64.zip *
+zip -r ../dist/docker-base_${VERSION}_linux_armhf.zip * # this should be automated ... later
 popd
 pushd pkg/dist
 shasum -a256 * > ./docker-base_${VERSION}_SHA256SUMS
-if [ -z $NOSIGN ]; then
-  gpg --default-key 348FFC4C --detach-sig ./docker-base_${VERSION}_SHA256SUMS
-fi
 popd
